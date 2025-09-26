@@ -49,13 +49,13 @@ const NotificationSystem = () => {
   const getNotificationStyles = (type: Notification['type']) => {
     switch (type) {
       case 'warning':
-        return 'border-warning bg-warning/10';
+        return 'border-warning bg-warning/95 backdrop-blur-sm';
       case 'error':
-        return 'border-destructive bg-destructive/10';
+        return 'border-destructive bg-destructive/95 backdrop-blur-sm';
       case 'success':
-        return 'border-success bg-success/10';
+        return 'border-success bg-success/95 backdrop-blur-sm';
       default:
-        return 'border-primary bg-primary/10';
+        return 'border-primary bg-primary/95 backdrop-blur-sm';
     }
   };
 
@@ -66,7 +66,7 @@ const NotificationSystem = () => {
       {visibleNotifications.map((notification) => (
         <Card
           key={notification.id}
-          className={`shadow-lg border-l-4 animate-in slide-in-from-right duration-300 ${getNotificationStyles(notification.type)}`}
+          className={`shadow-xl border-l-4 animate-in slide-in-from-right duration-300 ${getNotificationStyles(notification.type)} bg-card/95 backdrop-blur-sm`}
         >
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
