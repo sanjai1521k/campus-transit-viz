@@ -73,12 +73,6 @@ const StudentDashboard = () => {
     }
   };
 
-  const getOccupancyColor = (occupancy: number, capacity: number) => {
-    const percentage = (occupancy / capacity) * 100;
-    if (percentage > 80) return 'text-destructive';
-    if (percentage > 60) return 'text-warning';
-    return 'text-success';
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -218,9 +212,6 @@ const StudentDashboard = () => {
                         <Badge variant={getStatusColor(bus.status)}>
                           {bus.status}
                         </Badge>
-                        <p className={`text-sm mt-1 ${getOccupancyColor(bus.occupancy, bus.capacity)}`}>
-                          {bus.occupancy}/{bus.capacity}
-                        </p>
                       </div>
                     </div>
                   ))}
