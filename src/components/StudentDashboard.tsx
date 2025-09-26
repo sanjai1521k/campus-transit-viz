@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockBuses, mockRoutes, generateArrivalTimes, updateBusLocation } from '@/data/mockData';
 import { Bus, Route, Stop } from '@/types/transport';
-import SharedLocationMap from '@/components/SharedLocationMap';
+import GoogleMapsComponent from '@/components/SharedLocationMap';
 
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
@@ -86,7 +86,7 @@ const StudentDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <SharedLocationMap buses={buses} />
+                <GoogleMapsComponent buses={buses} />
               </CardContent>
             </Card>
           </div>
