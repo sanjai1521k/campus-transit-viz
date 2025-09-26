@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockBuses, mockRoutes, generateArrivalTimes, updateBusLocation } from '@/data/mockData';
 import { Bus, Route, Stop } from '@/types/transport';
+import GoogleMap from '@/components/GoogleMap';
+import ApiKeyInput from '@/components/ApiKeyInput';
 
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
@@ -13,6 +15,8 @@ const StudentDashboard = () => {
   const [routes] = useState<Route[]>(mockRoutes);
   const [selectedRoute, setSelectedRoute] = useState<Route>(routes[0]);
   const [routeStops, setRouteStops] = useState<Stop[]>([]);
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string>('');
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // Simulate bus movement and route updates
   useEffect(() => {
@@ -29,6 +33,40 @@ const StudentDashboard = () => {
   useEffect(() => {
     setRouteStops(generateArrivalTimes(selectedRoute.stops));
   }, [selectedRoute]);
+
+  // Load Google Maps script when API key is provided
+  useEffect(() => {
+    if (!googleMapsApiKey) return;
+
+    const existingScript = document.getElementById('google-maps-script');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    const script = document.createElement('script');
+    script.id = 'google-maps-script';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setIsMapLoaded(true);
+    script.onerror = () => {
+      console.error('Failed to load Google Maps');
+      setIsMapLoaded(false);
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      const scriptToRemove = document.getElementById('google-maps-script');
+      if (scriptToRemove) {
+        scriptToRemove.remove();
+      }
+    };
+  }, [googleMapsApiKey]);
+
+  const handleApiKeySubmit = (apiKey: string) => {
+    setGoogleMapsApiKey(apiKey);
+  };
 
   const getStatusColor = (status: Bus['status']) => {
     switch (status) {
@@ -89,58 +127,15 @@ const StudentDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-muted rounded-lg h-96 flex items-center justify-center relative overflow-hidden">
-                  {/* Mock Map Background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5">
-                    <div className="absolute inset-0 opacity-20">
-                      <div className="grid grid-cols-6 h-full">
-                        {Array.from({ length: 24 }).map((_, i) => (
-                          <div key={i} className="border border-muted-foreground/20" />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Mock Bus Icons */}
-                  {buses.filter(bus => bus.status === 'active').map((bus, index) => (
-                    <div
-                      key={bus.id}
-                      className="absolute animate-pulse-soft"
-                      style={{
-                        left: `${20 + index * 15}%`,
-                        top: `${30 + index * 10}%`,
-                      }}
-                    >
-                      <div className="bg-bus-indicator p-3 rounded-full shadow-bus">
-                        <MapPin className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-                        <Badge variant="secondary" className="text-xs">
-                          {bus.number}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Map Legend */}
-                  <div className="absolute bottom-4 right-4 bg-card p-3 rounded-lg shadow-md">
-                    <p className="text-sm font-medium mb-2">Bus Status</p>
-                    <div className="space-y-1 text-xs">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-success rounded-full"></div>
-                        <span>Active</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-warning rounded-full"></div>
-                        <span>Delayed</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-destructive rounded-full"></div>
-                        <span>Inactive</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {!googleMapsApiKey ? (
+                  <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
+                ) : (
+                  <GoogleMap 
+                    buses={buses}
+                    center={{ lat: 40.7128, lng: -74.0060 }} // Default to NYC, you can change this
+                    zoom={13}
+                  />
+                )}
               </CardContent>
             </Card>
           </div>
