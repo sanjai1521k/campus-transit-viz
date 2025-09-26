@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockBuses, mockRoutes, generateArrivalTimes, updateBusLocation } from '@/data/mockData';
 import { Bus, Route, Stop } from '@/types/transport';
-import GoogleMap from '@/components/GoogleMap';
+import SharedLocationMap from '@/components/SharedLocationMap';
 
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
@@ -14,8 +14,6 @@ const StudentDashboard = () => {
   const [routes] = useState<Route[]>(mockRoutes);
   const [selectedRoute, setSelectedRoute] = useState<Route>(routes[0]);
   const [routeStops, setRouteStops] = useState<Stop[]>([]);
-  const [googleMapsApiKey] = useState<string>('AIzaSyAOVYRIgupAurZup5y1PRh8Ismb1A3lLao');
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // Simulate bus movement and route updates
   useEffect(() => {
@@ -33,35 +31,6 @@ const StudentDashboard = () => {
     setRouteStops(generateArrivalTimes(selectedRoute.stops));
   }, [selectedRoute]);
 
-  // Load Google Maps script when API key is provided
-  useEffect(() => {
-    if (!googleMapsApiKey) return;
-
-    const existingScript = document.getElementById('google-maps-script');
-    if (existingScript) {
-      existingScript.remove();
-    }
-
-    const script = document.createElement('script');
-    script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setIsMapLoaded(true);
-    script.onerror = () => {
-      console.error('Failed to load Google Maps');
-      setIsMapLoaded(false);
-    };
-
-    document.head.appendChild(script);
-
-    return () => {
-      const scriptToRemove = document.getElementById('google-maps-script');
-      if (scriptToRemove) {
-        scriptToRemove.remove();
-      }
-    };
-  }, [googleMapsApiKey]);
 
 
   const getStatusColor = (status: Bus['status']) => {
@@ -113,15 +82,11 @@ const StudentDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Navigation className="h-5 w-5 text-primary" />
-                  <span>Live Bus Tracking</span>
+                  <span>Live Bus Locations</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <GoogleMap 
-                  buses={buses}
-                  center={{ lat: 40.7128, lng: -74.0060 }} // Default to NYC, you can change this
-                  zoom={13}
-                />
+                <SharedLocationMap buses={buses} />
               </CardContent>
             </Card>
           </div>

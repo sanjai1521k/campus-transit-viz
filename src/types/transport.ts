@@ -7,6 +7,7 @@ export interface Bus {
     lat: number;
     lng: number;
   };
+  sharedLocationUrl?: string;
   status: 'active' | 'delayed' | 'inactive';
   capacity: number;
   occupancy: number;
