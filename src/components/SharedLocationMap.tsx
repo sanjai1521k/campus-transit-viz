@@ -17,10 +17,10 @@ const GoogleMapsComponent: React.FC<GoogleMapsProps> = ({ buses }) => {
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const activeBuses = buses.filter(bus => bus.status === 'active');
+  const [selectedBus, setSelectedBus] = useState<Bus | null>(activeBuses[0] || null);
 
   const getStatusColor = (status: Bus['status']) => {
     switch (status) {
@@ -88,50 +88,44 @@ const GoogleMapsComponent: React.FC<GoogleMapsProps> = ({ buses }) => {
     markersRef.current.forEach(marker => marker.setMap(null));
     markersRef.current = [];
 
-    // Create new markers for each bus
-    activeBuses.forEach((bus) => {
+    // Only create marker for selected bus
+    if (selectedBus) {
       const marker = new google.maps.Marker({
-        position: { lat: bus.location.lat, lng: bus.location.lng },
+        position: { lat: selectedBus.location.lat, lng: selectedBus.location.lng },
         map: mapInstanceRef.current,
-        title: `${bus.number} - ${bus.route}`,
+        title: `${selectedBus.number} - ${selectedBus.route}`,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: getMarkerColor(bus.status),
+          scale: 10,
+          fillColor: getMarkerColor(selectedBus.status),
           fillOpacity: 1,
           strokeColor: '#ffffff',
-          strokeWeight: 2
+          strokeWeight: 3
         }
       });
 
       const infoWindow = new google.maps.InfoWindow({
         content: `
           <div style="padding: 8px;">
-            <h4 style="margin: 0 0 4px 0; font-weight: bold;">${bus.number}</h4>
-            <p style="margin: 0 0 2px 0; font-size: 14px;">Route: ${bus.route}</p>
-            <p style="margin: 0 0 2px 0; font-size: 14px;">Driver: ${bus.driver}</p>
-            <p style="margin: 0; font-size: 12px; color: ${getMarkerColor(bus.status)};">Status: ${bus.status}</p>
+            <h4 style="margin: 0 0 4px 0; font-weight: bold;">${selectedBus.number}</h4>
+            <p style="margin: 0 0 2px 0; font-size: 14px;">Route: ${selectedBus.route}</p>
+            <p style="margin: 0 0 2px 0; font-size: 14px;">Driver: ${selectedBus.driver}</p>
+            <p style="margin: 0; font-size: 12px; color: ${getMarkerColor(selectedBus.status)};">Status: ${selectedBus.status}</p>
           </div>
         `
       });
 
       marker.addListener('click', () => {
         infoWindow.open(mapInstanceRef.current, marker);
-        setSelectedBus(bus);
       });
 
       markersRef.current.push(marker);
-    });
 
-    // Adjust map bounds to show all buses
-    if (activeBuses.length > 0) {
-      const bounds = new google.maps.LatLngBounds();
-      activeBuses.forEach(bus => {
-        bounds.extend({ lat: bus.location.lat, lng: bus.location.lng });
-      });
-      mapInstanceRef.current.fitBounds(bounds);
+      // Center map on selected bus
+      mapInstanceRef.current.setCenter({ lat: selectedBus.location.lat, lng: selectedBus.location.lng });
+      mapInstanceRef.current.setZoom(15);
     }
-  }, [buses, mapLoaded, activeBuses]);
+  }, [selectedBus, mapLoaded]);
 
   if (activeBuses.length === 0) {
     return (
@@ -155,10 +149,6 @@ const GoogleMapsComponent: React.FC<GoogleMapsProps> = ({ buses }) => {
             size="sm"
             onClick={() => {
               setSelectedBus(bus);
-              if (mapInstanceRef.current) {
-                mapInstanceRef.current.setCenter({ lat: bus.location.lat, lng: bus.location.lng });
-                mapInstanceRef.current.setZoom(15);
-              }
             }}
             className="flex items-center space-x-2"
           >
@@ -182,8 +172,8 @@ const GoogleMapsComponent: React.FC<GoogleMapsProps> = ({ buses }) => {
               <div className="flex items-center space-x-3">
                 <MapPin className="h-5 w-5" />
                 <div>
-                  <h3 className="font-semibold">Live Bus Tracking</h3>
-                  <p className="text-sm opacity-90">{activeBuses.length} active buses</p>
+                  <h3 className="font-semibold">{selectedBus ? `Bus ${selectedBus.number}` : 'Live Bus Tracking'}</h3>
+                  <p className="text-sm opacity-90">{selectedBus ? `Route: ${selectedBus.route}` : `${activeBuses.length} active buses`}</p>
                 </div>
               </div>
               <Button
