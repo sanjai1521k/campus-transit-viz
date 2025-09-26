@@ -7,7 +7,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { mockBuses, mockRoutes, generateArrivalTimes, updateBusLocation } from '@/data/mockData';
 import { Bus, Route, Stop } from '@/types/transport';
 import GoogleMap from '@/components/GoogleMap';
-import ApiKeyInput from '@/components/ApiKeyInput';
 
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
@@ -15,7 +14,7 @@ const StudentDashboard = () => {
   const [routes] = useState<Route[]>(mockRoutes);
   const [selectedRoute, setSelectedRoute] = useState<Route>(routes[0]);
   const [routeStops, setRouteStops] = useState<Stop[]>([]);
-  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string>('');
+  const [googleMapsApiKey] = useState<string>('AIzaSyAOVYRIgupAurZup5y1PRh8Ismb1A3lLao');
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // Simulate bus movement and route updates
@@ -64,9 +63,6 @@ const StudentDashboard = () => {
     };
   }, [googleMapsApiKey]);
 
-  const handleApiKeySubmit = (apiKey: string) => {
-    setGoogleMapsApiKey(apiKey);
-  };
 
   const getStatusColor = (status: Bus['status']) => {
     switch (status) {
@@ -127,15 +123,11 @@ const StudentDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {!googleMapsApiKey ? (
-                  <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
-                ) : (
-                  <GoogleMap 
-                    buses={buses}
-                    center={{ lat: 40.7128, lng: -74.0060 }} // Default to NYC, you can change this
-                    zoom={13}
-                  />
-                )}
+                <GoogleMap 
+                  buses={buses}
+                  center={{ lat: 40.7128, lng: -74.0060 }} // Default to NYC, you can change this
+                  zoom={13}
+                />
               </CardContent>
             </Card>
           </div>
